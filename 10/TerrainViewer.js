@@ -1,8 +1,8 @@
 // 顶点着色器程序
 var VSHADER_SOURCE =
-  'attribute vec4 a_Position;\n' +  //位置
+  'attribute vec4 a_Position;\n' + //位置
   'attribute vec4 a_Color;\n' + //颜色
-  'attribute vec4 a_Normal;\n' +  //法向量
+  'attribute vec4 a_Normal;\n' + //法向量
   'uniform mat4 u_MvpMatrix;\n' +
   'varying vec4 v_Color;\n' +
   'varying vec4 v_Normal;\n' +
@@ -15,18 +15,19 @@ var VSHADER_SOURCE =
 // 片元着色器程序
 var FSHADER_SOURCE =
   'precision mediump float;\n' +
-  'uniform vec3 u_DiffuseLight;\n' +   // 漫反射光颜色
+  'uniform vec3 u_DiffuseLight;\n' + // 漫反射光颜色
   'uniform vec3 u_LightDirection;\n' + // 漫反射光的方向
-  'uniform vec3 u_AmbientLight;\n' +   // 环境光颜色
+  'uniform vec3 u_AmbientLight;\n' + // 环境光颜色
   'varying vec4 v_Color;\n' +
   'varying vec4 v_Normal;\n' +
   'void main() {\n' +
+  //对法向量归一化
   '  vec3 normal = normalize(v_Normal.xyz);\n' +
-  // The dot product of the light direction and the normal (the orientation of a surface)
+  //计算光线向量与法向量的点积
   '  float nDotL = max(dot(u_LightDirection, normal), 0.0);\n' +
-  // Calculate the color due to diffuse reflection
+  //计算漫发射光的颜色 
   '  vec3 diffuse = u_DiffuseLight * v_Color.rgb * nDotL;\n' +
-  // Calculate the color due to ambient reflection
+  //计算环境光的颜色
   '  vec3 ambient = u_AmbientLight * v_Color.rgb;\n' +
   '  gl_FragColor = vec4(diffuse+ambient, v_Color.a);\n' +
   '}\n';
@@ -61,8 +62,7 @@ Cuboid.prototype = {
 }
 
 //定义DEM
-function Terrain() {
-}
+function Terrain() {}
 Terrain.prototype = {
   constructor: Terrain,
   setWH: function (col, row) {
@@ -72,7 +72,7 @@ Terrain.prototype = {
 }
 
 var currentAngle = [0.0, 0.0]; // 绕X轴Y轴的旋转角度 ([x-axis, y-axis])
-var curScale = 1.0;   //当前的缩放比例
+var curScale = 1.0; //当前的缩放比例
 
 function main() {
   var demFile = document.getElementById('demFile');
@@ -92,11 +92,14 @@ function main() {
     var reader = new FileReader();
     reader.onload = function () {
       if (reader.result) {
+
+        //读取
         var terrain = new Terrain();
         if (!readDEMFile(reader.result, terrain)) {
           console.log("文件格式有误，不能读取该文件！");
         }
 
+        //绘制
         onDraw(gl, canvas, terrain);
       }
     }
@@ -130,9 +133,9 @@ function main() {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
+//绘制函数
 function onDraw(gl, canvas, terrain) {
   // 设置顶点位置
-  //var cuboid = new Cuboid(399589.072, 400469.072, 3995118.062, 3997558.062, 732, 1268); 
   var n = initVertexBuffers(gl, terrain);
   if (n < 0) {
     console.log('Failed to set the positions of the vertices');
@@ -155,7 +158,6 @@ function onDraw(gl, canvas, terrain) {
 
     //绘制矩形体
     gl.drawElements(gl.TRIANGLES, n, gl.UNSIGNED_SHORT, 0);
-    //gl.drawArrays(gl.Points, 0, n);
 
     //请求浏览器调用tick
     requestAnimationFrame(tick);
@@ -175,27 +177,28 @@ function setLight(gl) {
     return;
   }
 
-  // Set the light color (white)
+  //设置漫反射光
   gl.uniform3f(u_DiffuseLight, 1.0, 1.0, 1.0);
 
+  // 设置光线方向(世界坐标系下的)
   var solarAltitude = 45.0;
   var solarAzimuth = 315.0;
-  var fAltitude = solarAltitude * Math.PI / 180;				//光源高度角
-  var fAzimuth = solarAzimuth * Math.PI / 180;			//光源方位角
+  var fAltitude = solarAltitude * Math.PI / 180; //光源高度角
+  var fAzimuth = solarAzimuth * Math.PI / 180; //光源方位角
 
   var arrayvectorX = Math.cos(fAltitude) * Math.cos(fAzimuth);
   var arrayvectorY = Math.cos(fAltitude) * Math.sin(fAzimuth);
   var arrayvectorZ = Math.sin(fAltitude);
-
-  // Set the light direction (in the world coordinate)
+  
   var lightDirection = new Vector3([arrayvectorX, arrayvectorY, arrayvectorZ]);
-  lightDirection.normalize();     // Normalize
+  lightDirection.normalize(); // Normalize
   gl.uniform3fv(u_LightDirection, lightDirection.elements);
+
   //设置环境光
   gl.uniform3f(u_AmbientLight, 0.2, 0.2, 0.2);
 }
 
-//
+//读取DEM函数
 function readDEMFile(result, terrain) {
   var stringlines = result.split("\n");
   if (!stringlines || stringlines.length <= 0) {
@@ -207,8 +210,8 @@ function readDEMFile(result, terrain) {
   if (subline.length != 6) {
     return false;
   }
-  var col = parseInt(subline[4]);       //DEM宽
-  var row = parseInt(subline[5]);      //DEM高
+  var col = parseInt(subline[4]); //DEM宽
+  var row = parseInt(subline[5]); //DEM高
   var verticeNum = col * row;
   if (verticeNum + 1 > stringlines.length) {
     return false;
@@ -263,8 +266,9 @@ function readDEMFile(result, terrain) {
 
 //注册鼠标事件
 function initEventHandlers(canvas) {
-  var dragging = false;         // Dragging or not
-  var lastX = -1, lastY = -1;   // Last position of the mouse
+  var dragging = false; // Dragging or not
+  var lastX = -1,
+    lastY = -1; // Last position of the mouse
 
   //鼠标按下
   canvas.onmousedown = function (ev) {
@@ -340,7 +344,7 @@ function setMVPMatrix(gl, canvas, cuboid) {
   var eyeHight = (cuboid.LengthY() * 1.2) / 2.0 / angle;
 
   //视图矩阵  
-  var viewMatrix = new Matrix4();  // View matrix   
+  var viewMatrix = new Matrix4(); // View matrix   
   viewMatrix.lookAt(0, 0, eyeHight, 0, 0, 0, 0, 1, 0);
 
   //MVP矩阵
@@ -378,7 +382,7 @@ function initVertexBuffers(gl, terrain) {
 
   //
   var verticesColors = terrain.verticesColors;
-  var FSIZE = verticesColors.BYTES_PER_ELEMENT;   //数组中每个元素的字节数
+  var FSIZE = verticesColors.BYTES_PER_ELEMENT; //数组中每个元素的字节数
 
   // 创建缓冲区对象
   var vertexColorBuffer = gl.createBuffer();
