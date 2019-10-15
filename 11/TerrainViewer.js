@@ -1,6 +1,6 @@
 // 顶点着色器程序
 var VSHADER_SOURCE =
-  'attribute vec4 a_Position;\n' +  //位置
+  'attribute vec4 a_Position;\n' + //位置
   'attribute vec4 a_Color;\n' + //颜色
   'uniform mat4 u_MvpMatrix;\n' +
   'varying vec4 v_Color;\n' +
@@ -14,12 +14,13 @@ var VSHADER_SOURCE =
 // 片元着色器程序
 var FSHADER_SOURCE =
   'precision mediump float;\n' +
+  'uniform vec2 u_RangeX;\n' + //X方向范围
+  'uniform vec2 u_RangeY;\n' + //Y方向范围
   'uniform sampler2D u_Sampler;\n' +
   'varying vec4 v_Color;\n' +
   'varying vec4 v_position;\n' +
   'void main() {\n' +
-  '  vec2 bound = vec2(770.0, -2390.0);\n' + 
-  '  vec2 v_TexCoord = vec2(v_position.x / bound.x, v_position.y / bound.y);\n' +
+  '  vec2 v_TexCoord = vec2((v_position.x-u_RangeX[0]) / (u_RangeX[1]-u_RangeX[0]), 1.0-(v_position.y-u_RangeY[0]) / (u_RangeY[1]-u_RangeY[0]));\n' +
   '  gl_FragColor = texture2D(u_Sampler, v_TexCoord);\n' +
   '}\n';
 
@@ -53,8 +54,7 @@ Cuboid.prototype = {
 }
 
 //定义DEM
-function Terrain() {
-}
+function Terrain() { }
 Terrain.prototype = {
   constructor: Terrain,
   setWH: function (col, row) {
@@ -64,8 +64,8 @@ Terrain.prototype = {
 }
 
 var currentAngle = [0.0, 0.0]; // 绕X轴Y轴的旋转角度 ([x-axis, y-axis])
-var curScale = 1.0;   //当前的缩放比例
-var initTexSuccess = false;
+var curScale = 1.0; //当前的缩放比例
+var initTexSuccess = false; //纹理图像是否加载完成
 
 function main() {
   var demFile = document.getElementById('demFile');
@@ -136,8 +136,8 @@ function onDraw(gl, canvas, terrain) {
     return;
   }
 
-  // Set texture
-  if (!initTextures(gl)) {
+  //设置纹理
+  if (!initTextures(gl, terrain)) {
     console.log('Failed to intialize the texture.');
     return;
   }
@@ -167,61 +167,67 @@ function onDraw(gl, canvas, terrain) {
   tick();
 }
 
-function initTextures(gl) {
-  var texture = gl.createTexture();   // Create a texture object
-  if (!texture) {
-    console.log('Failed to create the texture object');
-    return false;
+function initTextures(gl, terrain) {
+  // 传递X方向和Y方向上的范围到着色器
+  var u_RangeX = gl.getUniformLocation(gl.program, 'u_RangeX');
+  var u_RangeY = gl.getUniformLocation(gl.program, 'u_RangeY');
+  if (!u_RangeX || !u_RangeY) {
+    console.log('Failed to get the storage location of u_RangeX or u_RangeY');
+    return;
   }
+  gl.uniform2f(u_RangeX, terrain.cuboid.minX, terrain.cuboid.maxX);
+  gl.uniform2f(u_RangeY, terrain.cuboid.minY, terrain.cuboid.maxY);
 
-  // Get the storage location of u_Sampler
-  var u_Sampler = gl.getUniformLocation(gl.program, 'u_Sampler');
-  if (!u_Sampler) {
-    console.log('Failed to get the storage location of u_Sampler');
-    return false;
-  }
-
-  var image = new Image();  // Create the image object
+  //创建一个image对象
+  var image = new Image();
   if (!image) {
     console.log('Failed to create the image object');
     return false;
   }
-  // Register the event handler to be called on loading an image
+  //图像加载的响应函数 
   image.onload = function () {
-    loadTexture(gl, texture, u_Sampler, image);
+    if (loadTexture(gl, image)) {
+      initTexSuccess = true;
+    }
   };
 
-  // Tell the browser to load an image
+  //浏览器开始加载图像
   image.src = 'tex.jpg';
 
   return true;
 }
 
-function loadTexture(gl, texture, u_Sampler, image) {
-  //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1); // Flip the image's y axis
-  // Enable texture unit0
+function loadTexture(gl, image) {
+  // 创建纹理对象
+  var texture = gl.createTexture();
+  if (!texture) {
+    console.log('Failed to create the texture object');
+    return false;
+  }
+
+  // 开启0号纹理单元
   gl.activeTexture(gl.TEXTURE0);
-  // Bind the texture object to the target
+  // 绑定纹理对象
   gl.bindTexture(gl.TEXTURE_2D, texture);
 
-  // Set the texture parameters
+  // 设置纹理参数
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-  // Set the texture image
+  // 配置纹理图像
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
 
-  // Set the texture unit 0 to the sampler
+  // 将0号单元纹理传递给着色器中的取样器变量 
+  var u_Sampler = gl.getUniformLocation(gl.program, 'u_Sampler');
+  if (!u_Sampler) {
+    console.log('Failed to get the storage location of u_Sampler');
+    return false;
+  }
   gl.uniform1i(u_Sampler, 0);
 
-  initTexSuccess = true;
-
-  // gl.clear(gl.COLOR_BUFFER_BIT);   // Clear <canvas>
-
-  // gl.drawArrays(gl.TRIANGLE_STRIP, 0, n); // Draw the rectangle
+  return true;
 }
 
 //读取DEM函数
@@ -236,8 +242,8 @@ function readDEMFile(result, terrain) {
   if (subline.length != 6) {
     return false;
   }
-  var col = parseInt(subline[4]);       //DEM宽
-  var row = parseInt(subline[5]);      //DEM高
+  var col = parseInt(subline[4]); //DEM宽
+  var row = parseInt(subline[5]); //DEM高
   var verticeNum = col * row;
   if (verticeNum + 1 > stringlines.length) {
     return false;
@@ -291,8 +297,9 @@ function readDEMFile(result, terrain) {
 
 //注册鼠标事件
 function initEventHandlers(canvas) {
-  var dragging = false;         // Dragging or not
-  var lastX = -1, lastY = -1;   // Last position of the mouse
+  var dragging = false; // Dragging or not
+  var lastX = -1,
+    lastY = -1; // Last position of the mouse
 
   //鼠标按下
   canvas.onmousedown = function (ev) {
@@ -368,7 +375,7 @@ function setMVPMatrix(gl, canvas, cuboid) {
   var eyeHight = (cuboid.LengthY() * 1.2) / 2.0 / angle;
 
   //视图矩阵  
-  var viewMatrix = new Matrix4();  // View matrix   
+  var viewMatrix = new Matrix4(); // View matrix   
   viewMatrix.lookAt(0, 0, eyeHight, 0, 0, 0, 0, 1, 0);
 
   //MVP矩阵
@@ -406,7 +413,7 @@ function initVertexBuffers(gl, terrain) {
 
   //
   var verticesColors = terrain.verticesColors;
-  var FSIZE = verticesColors.BYTES_PER_ELEMENT;   //数组中每个元素的字节数
+  var FSIZE = verticesColors.BYTES_PER_ELEMENT; //数组中每个元素的字节数
 
   // 创建缓冲区对象
   var vertexColorBuffer = gl.createBuffer();
