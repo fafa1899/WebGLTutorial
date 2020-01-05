@@ -350,7 +350,7 @@ function setMVPMatrix(gl, canvas, sphere, lightDirection) {
   modelMatrix.rotate(currentAngle[0], 1.0, 0.0, 0.0); // Rotation around x-axis 
   modelMatrix.rotate(currentAngle[1], 0.0, 1.0, 0.0); // Rotation around y-axis 
   modelMatrix.translate(-sphere.centerX, -sphere.centerY, -sphere.centerZ);
-
+  
   /*
   //----------------------透视---------------------
   //投影矩阵
@@ -365,9 +365,8 @@ function setMVPMatrix(gl, canvas, sphere, lightDirection) {
   //视图矩阵  
   var viewMatrix = new Matrix4(); // View matrix   
   viewMatrix.lookAt(0, 0, eyeHight, 0, 0, 0, 0, 1, 0);
-  //----------------------透视---------------------
-  */
-  
+  //----------------------透视---------------------*/
+    
   //----------------------正射---------------------
   //视图矩阵  
   var viewMatrix = new Matrix4();

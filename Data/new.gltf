@@ -1,0 +1,129 @@
+{
+    "asset": {
+        "generator": "CL",
+        "version": "2.0"
+    },
+    "scene": 0,
+    "scenes": [
+        {
+            "nodes": [
+                0
+            ]
+        }
+    ],
+    "nodes": [
+        {
+            "mesh": 0
+        }
+    ],
+    "meshes": [
+        {
+            "primitives": [
+                {
+                    "attributes": {
+                        "POSITION": 1,
+                        "TEXCOORD_0": 2
+                    },
+                    "indices": 0,
+                    "material": 0
+                }
+            ]
+        }
+    ],
+    "materials": [
+        {
+            "pbrMetallicRoughness": {
+                "baseColorTexture": {
+                    "index": 0
+                }
+            }
+        }
+    ],
+    "textures": [
+        {
+            "sampler": 0,
+            "source": 0
+        }
+    ],
+    "images": [
+        {
+            "uri": "tex.jpg"
+        }
+    ],
+    "samplers": [
+        {
+            "magFilter": 9729,
+            "minFilter": 9987,
+            "wrapS": 33648,
+            "wrapT": 33648
+        }
+    ],
+    "buffers": [
+        {
+            "uri": "new.bin",
+            "byteLength": 595236
+        }
+    ],
+    "bufferViews": [
+        {
+            "buffer": 0,
+            "byteOffset": 374400,
+            "byteLength": 220836,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteStride": 20,
+            "byteOffset": 0,
+            "byteLength": 374400,
+            "target": 34962
+        }
+    ],
+    "accessors": [
+        {
+            "bufferView": 0,
+            "byteOffset": 0,
+            "componentType": 5123,
+            "count": 110418,
+            "type": "SCALAR",
+            "max": [
+                18719
+            ],
+            "min": [
+                0
+            ]
+        },
+        {
+            "bufferView": 1,
+            "byteOffset": 0,
+            "componentType": 5126,
+            "count": 18720,
+            "type": "VEC3",
+            "max": [
+                770,
+                0.0,
+                1261.151611328125
+            ],
+            "min": [
+                0.0,
+                -2390,
+                733.5555419921875
+            ]
+        },
+        {
+            "bufferView": 1,
+            "byteOffset": 12,
+            "componentType": 5126,
+            "count": 18720,
+            "type": "VEC2",
+            "max": [
+                1,
+                1
+            ],
+            "min": [
+                0,
+                0
+            ]
+        }
+    ]
+}
