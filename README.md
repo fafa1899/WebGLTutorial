@@ -52,8 +52,8 @@ WebGL中使用纹理的实例：给地形贴上一张真实的纹理。
 # 3. 资源
 其代码已经上传到GitHub：[地址](https://github.com/fafa1899/WebGLTutorial)。个人见解难免有所疏漏，欢迎大家来互相交流。
 
-[imglink1]:1.gif
-[imglink2]:2.gif
+[imglink1]:https://github.com/fafa1899/WebGLTutorial/blob/master/1.gif
+[imglink2]:https://github.com/fafa1899/WebGLTutorial/blob/master/2.gif
 
 [netlink1]:https://blog.csdn.net/charlee44/article/details/98474589
 [netlink2]:https://blog.csdn.net/charlee44/article/details/99174844
